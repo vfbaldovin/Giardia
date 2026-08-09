@@ -22,8 +22,8 @@ export const site = {
 export const links = {
   spotify: 'https://open.spotify.com/artist/4GNricNFbsp71cGCIElwkp',
   instagram: 'https://www.instagram.com/giardia.adevarat/',
+  youtube: 'https://www.youtube.com/@giardia-r1q',
   // TODO: adaugati daca exista
-  youtube: '',
   bandcamp: '',
   facebook: '',
   appleMusic: '',

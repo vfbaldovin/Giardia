@@ -1,6 +1,24 @@
 ---
 import { site, links, photoCredit } from '../data/site';
+import LangSwitch from './LangSwitch.astro';
+import { useTranslations, anchor, pathFor, type Lang, type RouteKey } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  route: RouteKey;
+}
+const { lang, route } = Astro.props;
+const t = useTranslations(lang);
 const year = new Date().getFullYear();
+
+const quick = [
+  { label: t.nav.music, href: anchor('muzica', lang) },
+  { label: t.nav.game, href: pathFor('game', lang) },
+  { label: 'Instagram', href: links.instagram, ext: true },
+  { label: 'YouTube', href: links.youtube, ext: true },
+  { label: 'Spotify', href: links.spotify, ext: true },
+  { label: t.footer.email, href: `mailto:${site.email}` },
+];
 ---
 
 <footer class="border-t border-moss/40">
@@ -17,39 +35,28 @@ const year = new Date().getFullYear();
       class="flex flex-col gap-6 border-t border-moss/30 pt-8 md:flex-row md:items-center md:justify-between"
     >
       <div class="label leading-relaxed">
-        <p>© {year} {site.name}. Toate drepturile rezervate.</p>
-        <p>Fotografii © {photoCredit}.</p>
+        <p>© {year} {site.name}. {t.footer.rights}</p>
+        <p>{t.footer.photos(photoCredit)}</p>
       </div>
 
-      <ul class="flex flex-wrap gap-x-6 gap-y-2">
-        <li>
-          <a class="label transition-colors hover:text-slime" href="#muzica">Muzică</a>
-        </li>
-        <li>
-          <a class="label transition-colors hover:text-slime" href="/joc">Joc</a>
-        </li>
-        <li>
-          <a
-            class="label transition-colors hover:text-slime"
-            href={links.instagram}
-            target="_blank"
-            rel="noopener noreferrer">Instagram</a
-          >
-        </li>
-        <li>
-          <a
-            class="label transition-colors hover:text-slime"
-            href={links.spotify}
-            target="_blank"
-            rel="noopener noreferrer">Spotify</a
-          >
-        </li>
-        <li>
-          <a class="label transition-colors hover:text-slime" href={`mailto:${site.email}`}
-            >E-mail</a
-          >
-        </li>
-      </ul>
+      <div class="flex flex-col gap-5 md:items-end">
+        <ul class="flex flex-wrap gap-x-6 gap-y-2">
+          {
+            quick.map((l) => (
+              <li>
+                <a
+                  class="label transition-colors hover:text-slime"
+                  href={l.href}
+                  {...(l.ext ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <LangSwitch lang={lang} route={route} />
+      </div>
     </div>
   </div>
 </footer>

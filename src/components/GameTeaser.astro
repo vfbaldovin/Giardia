@@ -1,14 +1,18 @@
 ---
 import SectionHead from './SectionHead.astro';
+import { useTranslations, pathFor, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
 ---
 
 <section class="mx-auto max-w-[100rem] px-5 py-24 md:px-8 md:py-32">
-  <SectionHead index="05" title="Jocul" note="în browser · gratis" />
+  <SectionHead index="05" title={t.game.section} note={t.game.note} />
 
-  <div
-    class="reveal relative overflow-hidden border border-moss/40 bg-void-2 p-8 md:p-14"
-  >
-    <!-- Fundal: grila subtila, ca un ecran de arcade -->
+  <div class="reveal relative overflow-hidden border border-moss/40 bg-void-2 p-8 md:p-14">
     <div
       class="pointer-events-none absolute inset-0 opacity-[0.06]"
       style="background-image:linear-gradient(var(--color-slime) 1px,transparent 1px),linear-gradient(90deg,var(--color-slime) 1px,transparent 1px);background-size:32px 32px"
@@ -20,15 +24,12 @@ import SectionHead from './SectionHead.astro';
       <div>
         <h3 class="font-display text-5xl font-black uppercase leading-[0.85] text-bone md:text-7xl">
           Giardia<br />
-          <span class="text-slime">The Game</span>
+          <span class="text-slime">{t.game.subtitle}</span>
         </h3>
-        <p class="mt-6 max-w-lg text-lg text-bone/80">
-          Ești parazitul. Intestinul e terenul. Mănâncă tot ce prinzi, crește,
-          și ferește-te de metronidazol — pastilele nu glumesc.
-        </p>
+        <p class="mt-6 max-w-lg text-lg text-bone/80">{t.game.blurb}</p>
         <ul class="mt-6 flex flex-wrap gap-x-6 gap-y-2">
           {
-            ['Tastatură + swipe', 'Fără instalare', 'Scor salvat local'].map((f) => (
+            t.game.features.map((f) => (
               <li class="label flex items-center gap-2">
                 <span class="text-slime">▸</span>
                 {f}
@@ -36,10 +37,10 @@ import SectionHead from './SectionHead.astro';
             ))
           }
         </ul>
-        <a class="btn btn-solid mt-9" href="/joc">Intră în intestin</a>
+        <a class="btn btn-solid mt-9" href={pathFor('game', lang)}>{t.game.cta}</a>
       </div>
 
-      <!-- Mini-previzualizare statica: aceeasi grila ca in joc -->
+      <!-- Previzualizare statica: aceeasi grila ca in joc -->
       <div class="relative mx-auto w-full max-w-sm" aria-hidden="true">
         <div class="aspect-square border border-slime/40 bg-void p-3">
           <div class="grid h-full grid-cols-8 grid-rows-8 gap-1">
@@ -52,13 +53,7 @@ import SectionHead from './SectionHead.astro';
                   <div
                     class:list={[
                       'rounded-[2px]',
-                      head
-                        ? 'bg-slime'
-                        : body
-                          ? 'bg-moss'
-                          : food
-                            ? 'bg-viral'
-                            : 'bg-bone/[0.03]',
+                      head ? 'bg-slime' : body ? 'bg-moss' : food ? 'bg-viral' : 'bg-bone/[0.03]',
                     ]}
                   />
                 );

@@ -1,8 +1,15 @@
 ---
 import SectionHead from './SectionHead.astro';
 import { shows, site } from '../data/site';
+import { useTranslations, type Lang } from '../i18n/ui';
 
-const fmt = new Intl.DateTimeFormat('ro-RO', {
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const fmt = new Intl.DateTimeFormat(t.shows.locale, {
   day: '2-digit',
   month: 'short',
   year: 'numeric',
@@ -16,8 +23,8 @@ const upcoming = shows
 <section id="concerte" class="mx-auto max-w-[100rem] px-5 py-24 md:px-8 md:py-32">
   <SectionHead
     index="03"
-    title="Concerte"
-    note={upcoming.length ? `${upcoming.length} date` : 'în curând'}
+    title={t.shows.title}
+    note={upcoming.length ? t.shows.count(upcoming.length) : t.shows.soon}
   />
 
   {
@@ -36,13 +43,13 @@ const upcoming = shows
             </div>
             <div class="col-span-2 md:col-span-1 md:justify-self-end">
               {s.soldOut ? (
-                <span class="label text-viral">Sold out</span>
+                <span class="label text-viral">{t.shows.soldOut}</span>
               ) : s.ticketUrl ? (
                 <a class="btn" href={s.ticketUrl} target="_blank" rel="noopener noreferrer">
-                  Bilete
+                  {t.shows.tickets}
                 </a>
               ) : (
-                <span class="label">Intrare liberă</span>
+                <span class="label">{t.shows.free}</span>
               )}
             </div>
           </li>
@@ -51,14 +58,11 @@ const upcoming = shows
     ) : (
       <div class="reveal border border-dashed border-moss/50 p-10 text-center md:p-16">
         <p class="font-display text-4xl font-bold uppercase text-bone md:text-6xl">
-          Nicio dată anunțată
+          {t.shows.none}
         </p>
-        <p class="mx-auto mt-4 max-w-md text-bone/70">
-          Momentan nu avem concerte confirmate. Dacă organizezi ceva și vrei
-          o trupă care să dea jos tencuiala, scrie-ne.
-        </p>
+        <p class="mx-auto mt-4 max-w-md text-bone/70">{t.shows.noneBody}</p>
         <a class="btn btn-solid mt-8" href={`mailto:${site.booking}`}>
-          Booking
+          {t.shows.booking}
         </a>
       </div>
     )

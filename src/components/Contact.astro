@@ -1,22 +1,30 @@
 ---
 import SectionHead from './SectionHead.astro';
 import { site, links } from '../data/site';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
 
 const channels = [
-  { label: 'Booking & concerte', value: site.booking, href: `mailto:${site.booking}` },
-  { label: 'Orice altceva', value: site.email, href: `mailto:${site.email}` },
+  { label: t.contact.bookingLabel, value: site.booking, href: `mailto:${site.booking}` },
+  { label: t.contact.otherLabel, value: site.email, href: `mailto:${site.email}` },
 ];
 
 const social = [
   { label: 'Instagram', href: links.instagram },
+  { label: 'YouTube', href: links.youtube },
   { label: 'Spotify', href: links.spotify },
-  links.youtube && { label: 'YouTube', href: links.youtube },
   links.bandcamp && { label: 'Bandcamp', href: links.bandcamp },
+  links.facebook && { label: 'Facebook', href: links.facebook },
 ].filter(Boolean) as { label: string; href: string }[];
 ---
 
 <section id="contact" class="mx-auto max-w-[100rem] px-5 py-24 md:px-8 md:py-32">
-  <SectionHead index="06" title="Contact" note="răspundem, promitem" />
+  <SectionHead index="07" title={t.contact.title} note={t.contact.note} />
 
   <div class="grid gap-12 md:grid-cols-2 md:gap-16">
     <div class="reveal">
@@ -38,7 +46,7 @@ const social = [
     </div>
 
     <div class="reveal">
-      <p class="label mb-4">Unde ne mai găsești</p>
+      <p class="label mb-4">{t.contact.elsewhere}</p>
       <ul class="flex flex-col">
         {
           social.map((s) => (

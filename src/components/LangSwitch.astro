@@ -1,0 +1,78 @@
+---
+import { languages, routes, type Lang, type RouteKey } from '../i18n/ui';
+import { useTranslations } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** Ce pagina suntem — ca sa comutam pe traducerea EI, nu pe home. */
+  route: RouteKey;
+  compact?: boolean;
+}
+
+const { lang, route, compact = false } = Astro.props;
+const t = useTranslations(lang);
+const other: Lang = lang === 'ro' ? 'en' : 'ro';
+---
+
+<!--
+  Steagurile sunt SVG inline, nu emoji: pe Windows emoji-urile de steag
+  nu se randeaza deloc (se vad ca doua litere), deci ar fi aratat rupt
+  pentru o bucata buna din vizitatori.
+-->
+<div
+  class:list={['flex items-center', compact ? 'gap-1' : 'gap-1.5']}
+  role="group"
+  aria-label={t.nav.langLabel}
+>
+  {
+    (Object.keys(languages) as Lang[]).map((code) => {
+      const active = code === lang;
+      const meta = languages[code];
+      return (
+        <a
+          href={routes[route][code]}
+          hreflang={meta.htmlLang}
+          lang={meta.htmlLang}
+          aria-current={active ? 'true' : undefined}
+          title={meta.label}
+          class:list={[
+            'group flex items-center gap-1.5 border px-2 py-1 font-mono text-[0.65rem] font-bold uppercase tracking-widest transition-colors duration-300',
+            active
+              ? 'border-slime/70 bg-slime/10 text-slime'
+              : 'border-moss/40 text-bone/55 hover:border-slime/60 hover:text-bone',
+          ]}
+        >
+          <span
+            class:list={[
+              'block h-3 w-[1.125rem] shrink-0 overflow-hidden border border-void/60 transition-opacity duration-300',
+              active ? 'opacity-100' : 'opacity-60 group-hover:opacity-100',
+            ]}
+            aria-hidden="true"
+          >
+            {code === 'ro' ? (
+              <svg viewBox="0 0 3 2" class="h-full w-full">
+                <rect width="1" height="2" x="0" fill="#002B7F" />
+                <rect width="1" height="2" x="1" fill="#FCD116" />
+                <rect width="1" height="2" x="2" fill="#CE1126" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 60 30" class="h-full w-full">
+                <clipPath id={`uj-${route}-${compact ? 'c' : 'f'}`}>
+                  <path d="M0,0 v30 h60 v-30 z" />
+                </clipPath>
+                <g clip-path={`url(#uj-${route}-${compact ? 'c' : 'f'})`}>
+                  <rect width="60" height="30" fill="#012169" />
+                  <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6" />
+                  <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="3" />
+                  <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10" />
+                  <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6" />
+                </g>
+              </svg>
+            )}
+          </span>
+          <span>{meta.short}</span>
+        </a>
+      );
+    })
+  }
+</div>

@@ -117,11 +117,21 @@ const check = (name, cond, extra = '') => {
   else { fail++; console.log(`  ✗ ${name} ${extra}`); }
 };
 
-const game = startGiardia(canvas, ui);
+/* Texte de test: neutre, ca asertiunile sa nu depinda de limba livrata. */
+const TXT = {
+  start: 'START', intro: 'INTRO', paused: 'PAUSED', pausedBody: 'PAUSED_BODY',
+  resume: 'RESUME', dead: 'DEAD', again: 'AGAIN',
+  wall: 'WALL_HIT', self: 'SELF_HIT', pill: 'PILL_HIT',
+  scoreIs: (n) => `SCORE_${n}`,
+  soundOn: 'SOUND_ON', soundOff: 'SOUND_OFF',
+};
+
+const game = startGiardia(canvas, ui, TXT);
 
 console.log('\nStare initiala');
 check('overlay-ul de start e vizibil', !ui.overlay.hasAttribute('hidden'));
-check('titlul e "Giardia"', ui.overlayTitle.textContent === 'Giardia');
+check('titlul de start e "Giardia"', ui.overlayTitle.textContent === 'Giardia');
+check('textul introductiv vine din traduceri', ui.overlayText.textContent === TXT.intro);
 check('scorul porneste de la 0', ui.score.textContent === '0');
 
 console.log('\nMiscare');
@@ -172,12 +182,17 @@ console.log('\nColiziune cu peretele');
 advance(165 * 30); // coboara pana iese din grila
 check(
   'moare in perete',
-  ui.overlayTitle.textContent === 'Ai murit',
+  ui.overlayTitle.textContent === TXT.dead,
   `titlu="${ui.overlayTitle.textContent}"`,
 );
 check(
-  'motivul mentioneaza peretele',
-  /perete/i.test(ui.overlayText.textContent),
+  'motivul e cel injectat pentru perete',
+  ui.overlayText.textContent.startsWith(TXT.wall),
+  `text="${ui.overlayText.textContent}"`,
+);
+check(
+  'scorul apare prin functia din traduceri',
+  ui.overlayText.textContent.includes('SCORE_0'),
   `text="${ui.overlayText.textContent}"`,
 );
 check(
@@ -202,7 +217,7 @@ check(
 
 console.log('\nPersistenta recordului');
 advance(165 * 40); // lasa-l sa moara in peretele din dreapta
-check('a murit din nou', ui.overlayTitle.textContent === 'Ai murit');
+check('a murit din nou', ui.overlayTitle.textContent === TXT.dead);
 check(
   'recordul 10 s-a salvat',
   localStorage.getItem('giardia.highscore') === '10',

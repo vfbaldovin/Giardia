@@ -1,36 +1,61 @@
 ---
 import '../styles/global.css';
 import { site, links } from '../data/site';
+import {
+  languages,
+  routes,
+  defaultLang,
+  useTranslations,
+  type Lang,
+  type RouteKey,
+} from '../i18n/ui';
 
 interface Props {
+  lang: Lang;
+  /** Ce pagina e — sursa pentru canonical, hreflang si comutatorul de limba. */
+  route: RouteKey;
   title?: string;
   description?: string;
-  /** Cale relativa, ex. "/joc". Folosita pentru canonical + og:url. */
-  path?: string;
-  /** Imagine OG absoluta sau relativa la root. */
   image?: string;
-  /** JSON-LD suplimentar, injectat pe langa cel global. */
   schema?: Record<string, unknown> | Record<string, unknown>[];
-  /** Scoate pagina din index (ex. pagini utilitare). */
   noindex?: boolean;
 }
 
 const {
+  lang,
+  route,
   title,
-  description = site.description,
-  path = Astro.url.pathname,
+  description,
   image = '/og.jpg',
   schema,
   noindex = false,
 } = Astro.props;
 
-const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;
-const canonical = new URL(path, site.url).href.replace(/\/$/, '') || site.url;
+const t = useTranslations(lang);
+const meta = languages[lang];
+const desc = description ?? t.meta.description;
+
+const path = routes[route][lang];
+const abs = (p: string) => (p === '/' ? site.url : `${site.url}${p}`);
+const canonical = abs(path);
 const ogImage = new URL(image, site.url).href;
 
-/* ---- JSON-LD global: cine e trupa + ce e site-ul ------------------- */
-const sameAs = [links.spotify, links.instagram, links.youtube, links.bandcamp, links.facebook]
-  .filter(Boolean);
+const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${t.hero.tagline}`;
+
+/* hreflang: fiecare pagina isi declara toate variantele + x-default.
+   x-default arata spre romana, care e limba implicita a site-ului. */
+const alternates = (Object.keys(languages) as Lang[]).map((code) => ({
+  hreflang: languages[code].htmlLang,
+  href: abs(routes[route][code]),
+}));
+
+const sameAs = [
+  links.spotify,
+  links.instagram,
+  links.youtube,
+  links.bandcamp,
+  links.facebook,
+].filter(Boolean);
 
 const bandSchema = {
   '@type': 'MusicGroup',
@@ -38,11 +63,13 @@ const bandSchema = {
   name: site.name,
   url: site.url,
   genre: site.genres,
-  description: site.description,
+  description: desc,
   image: ogImage,
   logo: `${site.url}/brand/icon-512.png`,
   sameAs,
-  ...(site.origin.city ? { foundingLocation: { '@type': 'Place', name: site.origin.city } } : {}),
+  ...(site.origin.city
+    ? { foundingLocation: { '@type': 'Place', name: site.origin.city } }
+    : {}),
   email: site.email,
 };
 
@@ -51,13 +78,25 @@ const websiteSchema = {
   '@id': `${site.url}/#website`,
   url: site.url,
   name: site.name,
-  inLanguage: 'ro-RO',
+  inLanguage: (Object.keys(languages) as Lang[]).map((c) => languages[c].htmlLang),
   publisher: { '@id': `${site.url}/#band` },
+};
+
+const pageSchema = {
+  '@type': 'WebPage',
+  '@id': `${canonical}#page`,
+  url: canonical,
+  name: fullTitle,
+  description: desc,
+  inLanguage: meta.htmlLang,
+  isPartOf: { '@id': `${site.url}/#website` },
+  about: { '@id': `${site.url}/#band` },
 };
 
 const graph = [
   bandSchema,
   websiteSchema,
+  pageSchema,
   ...(schema ? (Array.isArray(schema) ? schema : [schema]) : []),
 ];
 
@@ -65,41 +104,37 @@ const jsonLd = { '@context': 'https://schema.org', '@graph': graph };
 ---
 
 <!doctype html>
-<html lang="ro" class="grain">
+<html lang={meta.htmlLang} class="grain">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>{fullTitle}</title>
-    <meta name="description" content={description} />
+    <meta name="description" content={desc} />
     <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
-    {!noindex && <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />}
 
-    <!-- Fonturile sunt self-hosted; le preincarcam pe cele din primul ecran
-         ca sa nu tremure textul (evita CLS din swap tardiv). -->
-    <link
-      rel="preload"
-      href="/fonts/v24-48e1b4bf.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <!-- latin-ext: fara el, ă/ș/ț din titluri s-ar reasza dupa incarcare. -->
-    <link
-      rel="preload"
-      href="/fonts/v24-75ea2b55.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/v22-a57c9413.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
+    {
+      alternates.map((a) => (
+        <link rel="alternate" hreflang={a.hreflang} href={a.href} />
+      ))
+    }
+    <link rel="alternate" hreflang="x-default" href={abs(routes[route][defaultLang])} />
+
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {
+      !noindex && (
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
+      )
+    }
+
+    <!-- Fonturile din primul ecran, preincarcate: fara ele textul s-ar
+         reaseza dupa swap. latin-ext e obligatoriu pentru ă/ș/ț. -->
+    <link rel="preload" href="/fonts/v24-48e1b4bf.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/v24-75ea2b55.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/v22-a57c9413.woff2" as="font" type="font/woff2" crossorigin />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
@@ -107,35 +142,35 @@ const jsonLd = { '@context': 'https://schema.org', '@graph': graph };
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#07080a" />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={site.name} />
-    <meta property="og:locale" content="ro_RO" />
+    <meta property="og:locale" content={meta.ogLocale} />
+    {
+      (Object.keys(languages) as Lang[])
+        .filter((c) => c !== lang)
+        .map((c) => <meta property="og:locale:alternate" content={languages[c].ogLocale} />)
+    }
     <meta property="og:title" content={fullTitle} />
-    <meta property="og:description" content={description} />
+    <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={`${site.name} — ${site.tagline}`} />
+    <meta property="og:image:alt" content={`${site.name} — ${t.hero.tagline}`} />
 
-    <!-- X / Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={ogImage} />
 
     <meta name="author" content={site.name} />
     <meta name="generator" content={Astro.generator} />
 
-    <!-- Spotify e singurul tert; deschidem conexiunea din timp. -->
     <link rel="preconnect" href="https://open.spotify.com" />
     <link rel="dns-prefetch" href="https://open.spotify.com" />
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
 
-    <!-- Marcheaza ca JS-ul e activ inainte de primul paint, ca sa nu
-         apara continutul si abia apoi sa dispara pentru animatie. -->
     <script is:inline>
       document.documentElement.classList.add('js');
     </script>
@@ -146,13 +181,12 @@ const jsonLd = { '@context': 'https://schema.org', '@graph': graph };
       href="#continut"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-slime focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:uppercase focus:text-void"
     >
-      Sari la conținut
+      {t.nav.skip}
     </a>
 
     <slot />
 
     <script>
-      // Reveal la scroll — un singur observer, deconectat dupa ce si-a facut treaba.
       const items = document.querySelectorAll('.reveal');
       if (items.length && 'IntersectionObserver' in window) {
         const io = new IntersectionObserver(

@@ -1,13 +1,22 @@
 ---
 import { site } from '../data/site';
+import LangSwitch from './LangSwitch.astro';
+import { useTranslations, anchor, pathFor, type Lang, type RouteKey } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  route: RouteKey;
+}
+const { lang, route } = Astro.props;
+const t = useTranslations(lang);
 
 const nav = [
-  { href: '/#muzica', label: 'Muzică' },
-  { href: '/#galerie', label: 'Galerie' },
-  { href: '/#concerte', label: 'Concerte' },
-  { href: '/#merch', label: 'Merch' },
-  { href: '/joc', label: 'Joc' },
-  { href: '/#contact', label: 'Contact' },
+  { href: anchor('muzica', lang), label: t.nav.music },
+  { href: anchor('galerie', lang), label: t.nav.gallery },
+  { href: anchor('concerte', lang), label: t.nav.shows },
+  { href: anchor('merch', lang), label: t.nav.merch },
+  { href: pathFor('game', lang), label: t.nav.game },
+  { href: anchor('contact', lang), label: t.nav.contact },
 ];
 ---
 
@@ -17,16 +26,15 @@ const nav = [
   data-nav
 >
   <nav
-    class="mx-auto flex max-w-[100rem] items-center justify-between px-5 py-3 md:px-8"
-    aria-label="Navigare principală"
+    class="mx-auto flex max-w-[100rem] items-center justify-between gap-4 px-5 py-3 md:px-8"
+    aria-label={t.nav.main}
   >
     <a
-      href="/"
-      class="group flex items-center gap-3"
-      aria-label={`${site.name} — pagina principală`}
+      href={pathFor('home', lang)}
+      class="group flex shrink-0 items-center gap-3"
+      aria-label={`${site.name} — ${t.nav.home}`}
     >
       <span class="text-bone transition-colors duration-300 group-hover:text-slime">
-        <!-- Craniul: acelasi SVG ca favicon-ul, mostenind culoarea -->
         <svg
           viewBox="0 0 16 16"
           width="28"
@@ -66,54 +74,59 @@ const nav = [
           <rect x="13" y="15" width="1" height="1"></rect>
         </svg>
       </span>
-      <span
-        class="font-display text-2xl font-black uppercase leading-none tracking-tight text-bone"
-      >
+      <span class="font-display text-2xl font-black uppercase leading-none tracking-tight text-bone">
         {site.name}
       </span>
     </a>
 
     <!-- Desktop -->
-    <ul class="hidden items-center gap-7 md:flex">
-      {
-        nav.map((item) => (
-          <li>
-            <a
-              href={item.href}
-              class="label relative py-2 text-bone/70 transition-colors duration-300 hover:text-slime after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-slime after:transition-transform after:duration-300 hover:after:scale-x-100"
-            >
-              {item.label}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+    <div class="hidden items-center gap-7 lg:flex">
+      <ul class="flex items-center gap-7">
+        {
+          nav.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="label relative py-2 text-bone/70 transition-colors duration-300 hover:text-slime after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-slime after:transition-transform after:duration-300 hover:after:scale-x-100"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <span class="h-4 w-px bg-moss/50"></span>
+      <LangSwitch lang={lang} route={route} />
+    </div>
 
-    <!-- Mobil -->
-    <button
-      type="button"
-      class="flex h-10 w-10 items-center justify-center md:hidden"
-      aria-label="Deschide meniul"
-      aria-expanded="false"
-      aria-controls="meniu-mobil"
-      data-menu-toggle
-    >
-      <span class="relative block h-3 w-6">
-        <span
-          class="absolute inset-x-0 top-0 h-0.5 bg-bone transition-transform duration-300"
-          data-bar-top
-        ></span>
-        <span
-          class="absolute inset-x-0 bottom-0 h-0.5 bg-bone transition-transform duration-300"
-          data-bar-bottom
-        ></span>
-      </span>
-    </button>
+    <!-- Mobil: comutatorul ramane vizibil, meniul se pliaza -->
+    <div class="flex items-center gap-2 lg:hidden">
+      <LangSwitch lang={lang} route={route} compact />
+      <button
+        type="button"
+        class="flex h-10 w-10 items-center justify-center"
+        aria-label={t.nav.open}
+        aria-expanded="false"
+        aria-controls="meniu-mobil"
+        data-menu-toggle
+        data-label-open={t.nav.open}
+        data-label-close={t.nav.close}
+      >
+        <span class="relative block h-3 w-6">
+          <span
+            class="absolute inset-x-0 top-0 h-0.5 bg-bone transition-transform duration-300"
+            data-bar-top></span>
+          <span
+            class="absolute inset-x-0 bottom-0 h-0.5 bg-bone transition-transform duration-300"
+            data-bar-bottom></span>
+        </span>
+      </button>
+    </div>
   </nav>
 
   <div
     id="meniu-mobil"
-    class="grid grid-rows-[0fr] overflow-hidden border-t border-moss/30 bg-void/95 backdrop-blur-lg transition-[grid-template-rows] duration-500 md:hidden"
+    class="grid grid-rows-[0fr] overflow-hidden border-t border-moss/30 bg-void/95 backdrop-blur-lg transition-[grid-template-rows] duration-500 lg:hidden"
     data-menu
   >
     <ul class="min-h-0">
@@ -141,7 +154,6 @@ const nav = [
   const barTop = document.querySelector<HTMLElement>('[data-bar-top]');
   const barBottom = document.querySelector<HTMLElement>('[data-bar-bottom]');
 
-  // Fundalul barei apare abia dupa ce s-a plecat din hero.
   if (header) {
     const onScroll = () => {
       const past = window.scrollY > 40;
@@ -157,7 +169,9 @@ const nav = [
     if (!menu || !toggle) return;
     menu.style.gridTemplateRows = open ? '1fr' : '0fr';
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', open ? 'Închide meniul' : 'Deschide meniul');
+    // Etichetele vin din HTML, ca sa fie in limba paginii.
+    const label = open ? toggle.dataset.labelClose : toggle.dataset.labelOpen;
+    if (label) toggle.setAttribute('aria-label', label);
     if (barTop) barTop.style.transform = open ? 'translateY(5px) rotate(45deg)' : '';
     if (barBottom) barBottom.style.transform = open ? 'translateY(-5px) rotate(-45deg)' : '';
   };

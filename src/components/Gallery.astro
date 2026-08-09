@@ -2,37 +2,46 @@
 import { Image } from 'astro:assets';
 import SectionHead from './SectionHead.astro';
 import { photoCredit } from '../data/site';
+import { useTranslations, type Lang } from '../i18n/ui';
 
+import vocal from '../assets/photos/live-vocal.jpg';
 import bass from '../assets/photos/live-bass.jpg';
 import guitar from '../assets/photos/live-guitar.jpg';
 import drums from '../assets/photos/live-drums.jpg';
 import portrait from '../assets/photos/live-portrait.jpg';
 import solo from '../assets/photos/live-solo.jpg';
 
-// span = cate coloane ocupa in grila de 6, ca sa iasa un mozaic asimetric.
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+/** Sase cadre egale: trei pe rand pe desktop, unul pe rand pe telefon. */
 const photos = [
-  { src: guitar, alt: 'Chitaristul GIARDIA pe scenă, în timpul unui concert', span: 'md:col-span-3' },
-  { src: drums, alt: 'Bateristul GIARDIA văzut de jos, în plin ritm', span: 'md:col-span-3' },
-  { src: solo, alt: 'Chitarist GIARDIA în lumini violet, cu expunere lungă', span: 'md:col-span-2' },
-  { src: bass, alt: 'Basistul GIARDIA aplecat peste instrument, pe scenă', span: 'md:col-span-2' },
-  { src: portrait, alt: 'Portret alb-negru al unui membru GIARDIA în concert', span: 'md:col-span-2' },
+  { src: vocal, alt: t.gallery.alts.vocal },
+  { src: guitar, alt: t.gallery.alts.guitar },
+  { src: drums, alt: t.gallery.alts.drums },
+  { src: solo, alt: t.gallery.alts.solo },
+  { src: bass, alt: t.gallery.alts.bass },
+  { src: portrait, alt: t.gallery.alts.portrait },
 ];
 ---
 
 <section id="galerie" class="mx-auto max-w-[100rem] px-5 py-24 md:px-8 md:py-32">
-  <SectionHead index="02" title="Galerie" note={`Foto: ${photoCredit}`} />
+  <SectionHead index="02" title={t.gallery.title} note={t.gallery.photoBy(photoCredit)} />
 
-  <div class="reveal grid grid-cols-1 gap-3 md:grid-cols-6">
+  <div class="reveal grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
     {
       photos.map((p, i) => (
-        <figure class:list={['photo group relative overflow-hidden border border-moss/30', p.span]}>
+        <figure class="photo group relative overflow-hidden border border-moss/30">
           <Image
             src={p.src}
             alt={p.alt}
             widths={[400, 800, 1200]}
-            sizes="(min-width: 768px) 40vw, 92vw"
-            loading={i < 2 ? 'eager' : 'lazy'}
-            class="aspect-[4/5] w-full object-cover md:aspect-[3/4]"
+            sizes="(min-width: 1024px) 32vw, (min-width: 640px) 47vw, 92vw"
+            loading={i < 3 ? 'eager' : 'lazy'}
+            class="aspect-[3/4] w-full object-cover"
           />
           <figcaption class="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-void to-transparent p-4 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
             <span class="label text-bone/80">© {photoCredit}</span>
@@ -42,7 +51,5 @@ const photos = [
     }
   </div>
 
-  <p class="label mt-6">
-    Toate fotografiile © {photoCredit}. Reproducere doar cu acord.
-  </p>
+  <p class="label mt-6">{t.gallery.credit(photoCredit)}</p>
 </section>

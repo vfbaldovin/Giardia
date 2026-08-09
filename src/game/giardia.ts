@@ -97,15 +97,36 @@ type Particle = {
 
 export type GameHandle = { destroy(): void };
 
-export function startGiardia(canvas: HTMLCanvasElement, ui: {
-  score: HTMLElement;
-  high: HTMLElement;
-  overlay: HTMLElement;
-  overlayTitle: HTMLElement;
-  overlayText: HTMLElement;
-  overlayBtn: HTMLElement;
-  muteBtn: HTMLButtonElement;
-}): GameHandle {
+/** Textele vin din afara, ca motorul sa nu stie in ce limba ruleaza. */
+export type GameStrings = {
+  start: string;
+  intro: string;
+  paused: string;
+  pausedBody: string;
+  resume: string;
+  dead: string;
+  again: string;
+  wall: string;
+  self: string;
+  pill: string;
+  scoreIs: (n: number) => string;
+  soundOn: string;
+  soundOff: string;
+};
+
+export function startGiardia(
+  canvas: HTMLCanvasElement,
+  ui: {
+    score: HTMLElement;
+    high: HTMLElement;
+    overlay: HTMLElement;
+    overlayTitle: HTMLElement;
+    overlayText: HTMLElement;
+    overlayBtn: HTMLElement;
+    muteBtn: HTMLButtonElement;
+  },
+  txt: GameStrings,
+): GameHandle {
   const ctx = canvas.getContext('2d', { alpha: false })!;
   const sfx = new Blips();
 
@@ -255,17 +276,17 @@ export function startGiardia(canvas: HTMLCanvasElement, ui: {
 
     // Peretele intestinului
     if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS) {
-      return die('Ai intrat în peretele intestinal.');
+      return die(txt.wall);
     }
     // Propriul corp — coada se elibereaza in acelasi tick, deci o ignoram
     if (snake.some((s, i) => i < snake.length - 1 && s.x === head.x && s.y === head.y)) {
-      return die('Te-ai mâncat pe tine. Clasic.');
+      return die(txt.self);
     }
     // Pastila
     const pill = pills.find((p) => p.x === head.x && p.y === head.y);
     if (pill) {
       burst((pill.x + 0.5) * cell, (pill.y + 0.5) * cell, C.bone, 26, 1.6);
-      return die('Metronidazol. Tratamentul a funcționat.');
+      return die(txt.pill);
     }
 
     snake.unshift(head);
@@ -316,7 +337,7 @@ export function startGiardia(canvas: HTMLCanvasElement, ui: {
         /* fara persistenta — nu e fatal */
       }
     }
-    setOverlay('Ai murit', `${reason} Scor: ${score}.`, 'Încă o dată');
+    setOverlay(txt.dead, `${reason} ${txt.scoreIs(score)}`, txt.again);
   }
 
   /* ---------------- desen ---------------- */
@@ -593,7 +614,7 @@ export function startGiardia(canvas: HTMLCanvasElement, ui: {
 
   function pause() {
     phase = 'paused';
-    setOverlay('Pauză', 'Parazitul așteaptă.', 'Continuă');
+    setOverlay(txt.paused, txt.pausedBody, txt.resume);
   }
 
   function resume() {
@@ -611,7 +632,7 @@ export function startGiardia(canvas: HTMLCanvasElement, ui: {
   ui.muteBtn.addEventListener('click', () => {
     sfx.muted = !sfx.muted;
     ui.muteBtn.setAttribute('aria-pressed', String(sfx.muted));
-    ui.muteBtn.textContent = sfx.muted ? 'Sunet: off' : 'Sunet: on';
+    ui.muteBtn.textContent = sfx.muted ? txt.soundOff : txt.soundOn;
   });
 
   // Pauza automata cand pleci din tab — altfel te intorci la un cadavru.
@@ -625,11 +646,7 @@ export function startGiardia(canvas: HTMLCanvasElement, ui: {
   document.addEventListener('visibilitychange', onVisibility);
 
   reset();
-  setOverlay(
-    'Giardia',
-    'Săgeți / WASD sau swipe. Mănâncă tot, ferește-te de pastile.',
-    'Start',
-  );
+  setOverlay('Giardia', txt.intro, txt.start);
   raf = requestAnimationFrame(frame);
 
   return {

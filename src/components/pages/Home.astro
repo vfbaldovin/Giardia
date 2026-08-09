@@ -1,0 +1,78 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../Nav.astro';
+import Hero from '../Hero.astro';
+import Marquee from '../Marquee.astro';
+import Music from '../Music.astro';
+import Gallery from '../Gallery.astro';
+import Shows from '../Shows.astro';
+import Merch from '../Merch.astro';
+import GameTeaser from '../GameTeaser.astro';
+import Follow from '../Follow.astro';
+import Contact from '../Contact.astro';
+import Footer from '../Footer.astro';
+import { site, releases, shows } from '../../data/site';
+import { useTranslations, routes, type Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const album = releases.find((r) => r.type === 'album')!;
+const pageUrl = lang === 'ro' ? site.url : `${site.url}${routes.home[lang]}`;
+
+/* Albumul ca entitate proprie — poate aparea in rezultate bogate. */
+const albumSchema = {
+  '@type': 'MusicAlbum',
+  '@id': `${site.url}/#album-vol1`,
+  name: album.title,
+  albumProductionType: 'https://schema.org/StudioAlbum',
+  albumReleaseType: 'https://schema.org/AlbumRelease',
+  datePublished: String(album.year),
+  byArtist: { '@id': `${site.url}/#band` },
+  genre: site.genres,
+  numTracks: album.tracks.length,
+  track: album.tracks.map((name, i) => ({
+    '@type': 'MusicRecording',
+    position: i + 1,
+    name,
+    byArtist: { '@id': `${site.url}/#band` },
+  })),
+};
+
+const eventSchema = shows.map((s) => ({
+  '@type': 'MusicEvent',
+  name: `GIARDIA live — ${s.city}`,
+  startDate: s.date,
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  location: { '@type': 'Place', name: s.venue, address: s.city },
+  performer: { '@id': `${site.url}/#band` },
+  ...(s.ticketUrl ? { offers: { '@type': 'Offer', url: s.ticketUrl } } : {}),
+}));
+
+const marqueeItems = [...album.tracks, `${album.title} — ${lang === 'ro' ? 'afară acum' : 'out now'}`];
+const words =
+  lang === 'ro'
+    ? ['Groove', 'Thrash', 'Riff', 'Live', 'România']
+    : ['Groove', 'Thrash', 'Riff', 'Live', 'Romania'];
+---
+
+<Base lang={lang} route="home" schema={[albumSchema, ...eventSchema]}>
+  <Nav lang={lang} route="home" />
+  <main id="continut">
+    <Hero lang={lang} />
+    <Marquee items={marqueeItems} solid />
+    <Music lang={lang} />
+    <Gallery lang={lang} />
+    <Marquee items={words} />
+    <Shows lang={lang} />
+    <Merch lang={lang} />
+    <GameTeaser lang={lang} />
+    <Follow lang={lang} />
+    <Contact lang={lang} />
+  </main>
+  <Footer lang={lang} route="home" />
+</Base>

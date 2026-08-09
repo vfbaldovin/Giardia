@@ -1,0 +1,194 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../Nav.astro';
+import Footer from '../Footer.astro';
+import { site } from '../../data/site';
+import { useTranslations, routes, languages, type Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const pageUrl = `${site.url}${routes.game[lang]}`;
+const homeUrl = lang === 'ro' ? site.url : `${site.url}${routes.home[lang]}`;
+
+const gameSchema = {
+  '@type': 'VideoGame',
+  '@id': `${pageUrl}#game`,
+  name: 'Giardia — The Game',
+  url: pageUrl,
+  description: t.meta.gameDescription,
+  genre: ['Arcade', 'Snake'],
+  gamePlatform: 'Web browser',
+  applicationCategory: 'Game',
+  operatingSystem: 'Any',
+  inLanguage: languages[lang].htmlLang,
+  author: { '@id': `${site.url}/#band` },
+  publisher: { '@id': `${site.url}/#band` },
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'RON' },
+};
+
+const breadcrumb = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: t.game.home, item: homeUrl },
+    { '@type': 'ListItem', position: 2, name: t.meta.gameTitle, item: pageUrl },
+  ],
+};
+
+/** Textele motorului, serializate pentru scriptul de client. */
+const engine = {
+  start: t.game.engine.start,
+  intro: t.game.engine.intro,
+  paused: t.game.engine.paused,
+  pausedBody: t.game.engine.pausedBody,
+  resume: t.game.engine.resume,
+  dead: t.game.engine.dead,
+  again: t.game.engine.again,
+  wall: t.game.engine.wall,
+  self: t.game.engine.self,
+  pill: t.game.engine.pill,
+  scorePrefix: lang === 'ro' ? 'Scor' : 'Score',
+  soundOn: t.game.soundOn,
+  soundOff: t.game.soundOff,
+};
+---
+
+<Base
+  lang={lang}
+  route="game"
+  title={t.meta.gameTitle}
+  description={t.meta.gameDescription}
+  schema={[gameSchema, breadcrumb]}
+>
+  <Nav lang={lang} route="game" />
+
+  <main id="continut" class="mx-auto max-w-[100rem] px-5 pb-24 pt-28 md:px-8 md:pt-32">
+    <nav aria-label={t.game.breadcrumb} class="label mb-6">
+      <a href={routes.home[lang]} class="transition-colors hover:text-slime">{t.game.home}</a>
+      <span class="mx-2 text-moss">/</span>
+      <span class="text-bone">{t.meta.gameTitle}</span>
+    </nav>
+
+    <header class="mb-10">
+      <h1 class="display-fill text-bone">
+        Giardia<br /><span class="text-slime">{t.game.subtitle}</span>
+      </h1>
+      <p class="mt-6 max-w-xl text-lg text-bone/80">{t.game.pageBlurb}</p>
+    </header>
+
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div class="relative mx-auto w-full max-w-[42rem]">
+        <div class="relative aspect-square border border-moss/50 bg-void">
+          <canvas id="arena" class="h-full w-full touch-none" aria-label={t.game.arenaLabel} role="img"
+          ></canvas>
+
+          <div
+            id="overlay"
+            class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-void/85 p-8 text-center backdrop-blur-sm"
+          >
+            <h2
+              id="overlay-title"
+              class="font-display text-5xl font-black uppercase text-bone md:text-7xl"
+            >
+              Giardia
+            </h2>
+            <p id="overlay-text" class="max-w-xs text-bone/75"></p>
+            <button id="overlay-btn" class="btn btn-solid mt-2" type="button">
+              {t.game.engine.start}
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between gap-4 border-t border-moss/40 pt-4">
+          <div class="flex gap-8">
+            <div>
+              <p class="label">{t.game.score}</p>
+              <p id="score" class="font-display text-4xl font-black leading-none text-slime">0</p>
+            </div>
+            <div>
+              <p class="label">{t.game.record}</p>
+              <p id="high" class="font-display text-4xl font-black leading-none text-bone/60">0</p>
+            </div>
+          </div>
+          <button
+            id="mute"
+            type="button"
+            class="label border border-moss/50 px-3 py-2 transition-colors hover:border-slime hover:text-slime"
+            aria-pressed="false"
+          >
+            {t.game.soundOn}
+          </button>
+        </div>
+      </div>
+
+      <aside>
+        <h2 class="font-display mb-4 text-3xl font-bold uppercase text-bone">{t.game.controls}</h2>
+        <ul class="border-t border-moss/40">
+          {
+            t.game.controlRows.map((c) => (
+              <li class="flex items-center justify-between gap-4 border-b border-moss/20 py-3">
+                <span class="font-mono text-sm text-slime">{c.keys}</span>
+                <span class="label">{c.what}</span>
+              </li>
+            ))
+          }
+        </ul>
+
+        <h2 class="font-display mb-4 mt-10 text-3xl font-bold uppercase text-bone">
+          {t.game.rulesTitle}
+        </h2>
+        <ul class="flex flex-col gap-3 text-sm text-bone/75">
+          {
+            t.game.rules.map((r, i) => (
+              <li class="flex gap-3">
+                <span
+                  class:list={[
+                    'mt-1 h-2 w-2 shrink-0 rounded-full',
+                    ['bg-slime', 'bg-viral', 'bg-bone', 'bg-moss'][i],
+                  ]}
+                />
+                <span>{r}</span>
+              </li>
+            ))
+          }
+        </ul>
+
+        <p class="mt-10 border-l-2 border-moss/50 pl-4 text-sm text-bone/60">{t.game.persist}</p>
+      </aside>
+    </div>
+  </main>
+
+  <Footer lang={lang} route="game" />
+</Base>
+
+<!-- Textele ajung la script printr-un <script type="application/json">:
+     asa raman traduse fara sa punem JavaScript inline (CSP-ul e strict). -->
+<script id="game-strings" type="application/json" set:html={JSON.stringify(engine)} is:inline
+></script>
+
+<script>
+  import { startGiardia, type GameStrings } from '../../game/giardia';
+
+  const canvas = document.getElementById('arena') as HTMLCanvasElement | null;
+  const raw = document.getElementById('game-strings')?.textContent;
+
+  if (canvas && raw) {
+    const s = JSON.parse(raw) as Omit<GameStrings, 'scoreIs'> & { scorePrefix: string };
+    startGiardia(
+      canvas,
+      {
+        score: document.getElementById('score')!,
+        high: document.getElementById('high')!,
+        overlay: document.getElementById('overlay')!,
+        overlayTitle: document.getElementById('overlay-title')!,
+        overlayText: document.getElementById('overlay-text')!,
+        overlayBtn: document.getElementById('overlay-btn')!,
+        muteBtn: document.getElementById('mute') as HTMLButtonElement,
+      },
+      { ...s, scoreIs: (n: number) => `${s.scorePrefix}: ${n}.` },
+    );
+  }
+</script>
