@@ -1,0 +1,55 @@
+---
+import { site, links, photoCredit } from '../data/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-moss/40">
+  <div class="mx-auto max-w-[100rem] px-5 py-14 md:px-8">
+    <!-- Wordmark mare, taiat de marginea de jos -->
+    <p
+      class="font-display -mb-3 select-none overflow-hidden text-[19vw] font-black uppercase leading-[0.75] tracking-tighter text-bone/[0.07]"
+      aria-hidden="true"
+    >
+      {site.name}
+    </p>
+
+    <div
+      class="flex flex-col gap-6 border-t border-moss/30 pt-8 md:flex-row md:items-center md:justify-between"
+    >
+      <div class="label leading-relaxed">
+        <p>© {year} {site.name}. Toate drepturile rezervate.</p>
+        <p>Fotografii © {photoCredit}.</p>
+      </div>
+
+      <ul class="flex flex-wrap gap-x-6 gap-y-2">
+        <li>
+          <a class="label transition-colors hover:text-slime" href="#muzica">Muzică</a>
+        </li>
+        <li>
+          <a class="label transition-colors hover:text-slime" href="/joc">Joc</a>
+        </li>
+        <li>
+          <a
+            class="label transition-colors hover:text-slime"
+            href={links.instagram}
+            target="_blank"
+            rel="noopener noreferrer">Instagram</a
+          >
+        </li>
+        <li>
+          <a
+            class="label transition-colors hover:text-slime"
+            href={links.spotify}
+            target="_blank"
+            rel="noopener noreferrer">Spotify</a
+          >
+        </li>
+        <li>
+          <a class="label transition-colors hover:text-slime" href={`mailto:${site.email}`}
+            >E-mail</a
+          >
+        </li>
+      </ul>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,20 @@
+---
+interface Props {
+  /** Numarul afisat la stanga, ex. "01". */
+  index: string;
+  title: string;
+  /** Text mic sub titlu. */
+  note?: string;
+  id?: string;
+}
+const { index, title, note, id } = Astro.props;
+---
+
+<div class="reveal mb-10 md:mb-14">
+  <div class="mb-3 flex items-baseline gap-4">
+    <span class="label text-slime">{index}</span>
+    <span class="h-px flex-1 bg-moss/40"></span>
+    {note && <span class="label hidden md:inline">{note}</span>}
+  </div>
+  <h2 id={id} class="display-fill text-bone">{title}</h2>
+</div>

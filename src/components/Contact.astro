@@ -1,0 +1,68 @@
+---
+import SectionHead from './SectionHead.astro';
+import { site, links } from '../data/site';
+
+const channels = [
+  { label: 'Booking & concerte', value: site.booking, href: `mailto:${site.booking}` },
+  { label: 'Orice altceva', value: site.email, href: `mailto:${site.email}` },
+];
+
+const social = [
+  { label: 'Instagram', href: links.instagram },
+  { label: 'Spotify', href: links.spotify },
+  links.youtube && { label: 'YouTube', href: links.youtube },
+  links.bandcamp && { label: 'Bandcamp', href: links.bandcamp },
+].filter(Boolean) as { label: string; href: string }[];
+---
+
+<section id="contact" class="mx-auto max-w-[100rem] px-5 py-24 md:px-8 md:py-32">
+  <SectionHead index="06" title="Contact" note="răspundem, promitem" />
+
+  <div class="grid gap-12 md:grid-cols-2 md:gap-16">
+    <div class="reveal">
+      <ul class="border-t border-moss/40">
+        {
+          channels.map((c) => (
+            <li class="border-b border-moss/20 py-6">
+              <p class="label mb-2">{c.label}</p>
+              <a
+                href={c.href}
+                class="font-display break-all text-3xl font-bold uppercase text-bone transition-colors hover:text-slime md:text-4xl"
+              >
+                {c.value}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="reveal">
+      <p class="label mb-4">Unde ne mai găsești</p>
+      <ul class="flex flex-col">
+        {
+          social.map((s) => (
+            <li>
+              <a
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group flex items-center justify-between border-b border-moss/20 py-5 transition-colors hover:text-slime"
+              >
+                <span class="font-display text-3xl font-bold uppercase text-bone transition-colors group-hover:text-slime md:text-4xl">
+                  {s.label}
+                </span>
+                <span
+                  class="text-slime transition-transform duration-300 group-hover:translate-x-1"
+                  aria-hidden="true"
+                >
+                  ↗
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>

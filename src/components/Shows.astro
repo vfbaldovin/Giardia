@@ -1,0 +1,66 @@
+---
+import SectionHead from './SectionHead.astro';
+import { shows, site } from '../data/site';
+
+const fmt = new Intl.DateTimeFormat('ro-RO', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+});
+
+const upcoming = shows
+  .filter((s) => new Date(s.date) >= new Date(new Date().toDateString()))
+  .sort((a, b) => +new Date(a.date) - +new Date(b.date));
+---
+
+<section id="concerte" class="mx-auto max-w-[100rem] px-5 py-24 md:px-8 md:py-32">
+  <SectionHead
+    index="03"
+    title="Concerte"
+    note={upcoming.length ? `${upcoming.length} date` : 'în curând'}
+  />
+
+  {
+    upcoming.length > 0 ? (
+      <ul class="reveal border-t border-moss/40">
+        {upcoming.map((s) => (
+          <li class="group grid grid-cols-[auto_1fr] items-center gap-x-6 gap-y-1 border-b border-moss/20 py-6 transition-colors hover:bg-void-2 md:grid-cols-[10rem_1fr_auto] md:px-4">
+            <time class="label text-slime" datetime={s.date}>
+              {fmt.format(new Date(s.date))}
+            </time>
+            <div class="col-span-2 md:col-span-1">
+              <p class="font-display text-3xl font-bold uppercase leading-none text-bone md:text-4xl">
+                {s.city}
+              </p>
+              <p class="mt-1 text-bone/60">{s.venue}</p>
+            </div>
+            <div class="col-span-2 md:col-span-1 md:justify-self-end">
+              {s.soldOut ? (
+                <span class="label text-viral">Sold out</span>
+              ) : s.ticketUrl ? (
+                <a class="btn" href={s.ticketUrl} target="_blank" rel="noopener noreferrer">
+                  Bilete
+                </a>
+              ) : (
+                <span class="label">Intrare liberă</span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <div class="reveal border border-dashed border-moss/50 p-10 text-center md:p-16">
+        <p class="font-display text-4xl font-bold uppercase text-bone md:text-6xl">
+          Nicio dată anunțată
+        </p>
+        <p class="mx-auto mt-4 max-w-md text-bone/70">
+          Momentan nu avem concerte confirmate. Dacă organizezi ceva și vrei
+          o trupă care să dea jos tencuiala, scrie-ne.
+        </p>
+        <a class="btn btn-solid mt-8" href={`mailto:${site.booking}`}>
+          Booking
+        </a>
+      </div>
+    )
+  }
+</section>

@@ -1,0 +1,27 @@
+{
+  "name": "GIARDIA",
+  "short_name": "GIARDIA",
+  "description": "Trupă de groove metal și thrash din România. Album Vol. 1, concerte, merch și jocul oficial.",
+  "lang": "ro",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07080a",
+  "theme_color": "#07080a",
+  "orientation": "portrait-primary",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    {
+      "src": "/brand/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Joacă Giardia", "url": "/joc" },
+    { "name": "Muzică", "url": "/#muzica" }
+  ]
+}

@@ -1,0 +1,248 @@
+@import './fonts.css';
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ * Design tokens. Paleta e extrasa din coperta Vol. 1 — verde-mucegai,
+ * violet viral, lavanda, negru aproape absolut.
+ * ------------------------------------------------------------------ */
+@theme {
+  --color-void: #07080a;
+  --color-void-2: #0d1013;
+  --color-bile: #1b2a1e;
+  --color-moss: #3f5a3a;
+  --color-slime: #8fbf5a;
+  --color-viral: #6b4e8f;
+  --color-spore: #b69fbe;
+  --color-bone: #e8e4dc;
+  --color-ash: #8c8a86;
+
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ------------------------------------------------------------------ *
+ * Baza
+ * ------------------------------------------------------------------ */
+@layer base {
+  :root {
+    color-scheme: dark;
+    /* Bara de scroll discreta, sa nu strice tema */
+    scrollbar-color: var(--color-moss) var(--color-void);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Compenseaza navbar-ul sticky cand se sare la #ancora */
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-void);
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-slime);
+    color: var(--color-void);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-slime);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: 0.82;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  p { text-wrap: pretty; }
+
+  img, svg, video { display: block; max-width: 100%; }
+
+  /* Respecta preferinta de sistem: fara animatii daca omul le-a taiat. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Utilitare proprii
+ * ------------------------------------------------------------------ */
+@utility text-stroke {
+  -webkit-text-stroke: 1px var(--color-bone);
+  color: transparent;
+}
+
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+}
+
+/* Titluri de sectiune care umplu latimea containerului. */
+@utility display-fill {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.8;
+  font-size: clamp(3rem, 13vw, 11rem);
+  letter-spacing: -0.02em;
+}
+
+/* ------------------------------------------------------------------ *
+ * Grain — o singura textura, pusa peste tot, fixed. Data-URI ca sa nu
+ * coste un request. Nu intercepteaza click-urile.
+ * ------------------------------------------------------------------ */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.22;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  animation: grain-shift 0.6s steps(3) infinite;
+  will-change: transform;
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(-2%, 1%); }
+  66%  { transform: translate(1%, -2%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Linii de scanare foarte discrete peste hero. */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.35) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Reveal la scroll. Fara JS de animatie: doar o clasa pusa de un
+ * IntersectionObserver mic. Daca JS-ul nu ruleaza, .reveal e vizibil
+ * (regula de mai jos se aplica doar cand <html> are .js).
+ * ------------------------------------------------------------------ */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.7s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+}
+
+.js .reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Fotografii: alb-negru pana la hover, apoi duotone verde/violet.
+ * ------------------------------------------------------------------ */
+.photo img {
+  filter: grayscale(1) contrast(1.15) brightness(0.85);
+  transition:
+    filter 0.5s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+}
+
+.photo:hover img,
+.photo:focus-visible img {
+  filter: grayscale(0.35) contrast(1.25) brightness(1) sepia(0.3)
+    hue-rotate(55deg) saturate(1.4);
+  transform: scale(1.04);
+}
+
+/* ------------------------------------------------------------------ *
+ * Marquee. Doua copii identice care aluneca — bucla fara salt.
+ * ------------------------------------------------------------------ */
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 38s linear infinite;
+}
+
+.marquee:hover { animation-play-state: paused; }
+
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+/* ------------------------------------------------------------------ *
+ * Butoane
+ * ------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-moss);
+  color: var(--color-bone);
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.35s var(--ease-out-expo), border-color 0.35s;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-slime);
+  transform: translateY(101%);
+  transition: transform 0.4s var(--ease-out-expo);
+  z-index: -1;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  color: var(--color-void);
+  border-color: var(--color-slime);
+}
+
+.btn:hover::before,
+.btn:focus-visible::before {
+  transform: translateY(0);
+}
+
+.btn-solid {
+  background: var(--color-slime);
+  color: var(--color-void);
+  border-color: var(--color-slime);
+}
+
+.btn-solid::before { background: var(--color-bone); }

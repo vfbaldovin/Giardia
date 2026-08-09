@@ -1,0 +1,32 @@
+---
+interface Props {
+  items: string[];
+  /** Inverseaza culorile — folosit ca separator puternic intre sectiuni. */
+  solid?: boolean;
+}
+const { items, solid = false } = Astro.props;
+
+// Se dubleaza lista: bucla la -50% cade exact peste inceput, fara salt.
+const loop = [...items, ...items];
+---
+
+<div
+  class:list={[
+    'relative overflow-hidden border-y py-3 select-none',
+    solid ? 'border-slime bg-slime text-void' : 'border-moss/40 text-bone/60',
+  ]}
+  aria-hidden="true"
+>
+  <div class="marquee">
+    {
+      loop.map((item) => (
+        <span class="font-display flex shrink-0 items-center gap-6 whitespace-nowrap px-6 text-3xl font-bold uppercase tracking-tight md:text-4xl">
+          {item}
+          <span class:list={['text-base', solid ? 'text-void/50' : 'text-slime']}>
+            ✕
+          </span>
+        </span>
+      ))
+    }
+  </div>
+</div>

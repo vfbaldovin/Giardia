@@ -1,0 +1,175 @@
+---
+import '../styles/global.css';
+import { site, links } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Cale relativa, ex. "/joc". Folosita pentru canonical + og:url. */
+  path?: string;
+  /** Imagine OG absoluta sau relativa la root. */
+  image?: string;
+  /** JSON-LD suplimentar, injectat pe langa cel global. */
+  schema?: Record<string, unknown> | Record<string, unknown>[];
+  /** Scoate pagina din index (ex. pagini utilitare). */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = site.description,
+  path = Astro.url.pathname,
+  image = '/og.jpg',
+  schema,
+  noindex = false,
+} = Astro.props;
+
+const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`;
+const canonical = new URL(path, site.url).href.replace(/\/$/, '') || site.url;
+const ogImage = new URL(image, site.url).href;
+
+/* ---- JSON-LD global: cine e trupa + ce e site-ul ------------------- */
+const sameAs = [links.spotify, links.instagram, links.youtube, links.bandcamp, links.facebook]
+  .filter(Boolean);
+
+const bandSchema = {
+  '@type': 'MusicGroup',
+  '@id': `${site.url}/#band`,
+  name: site.name,
+  url: site.url,
+  genre: site.genres,
+  description: site.description,
+  image: ogImage,
+  logo: `${site.url}/brand/icon-512.png`,
+  sameAs,
+  ...(site.origin.city ? { foundingLocation: { '@type': 'Place', name: site.origin.city } } : {}),
+  email: site.email,
+};
+
+const websiteSchema = {
+  '@type': 'WebSite',
+  '@id': `${site.url}/#website`,
+  url: site.url,
+  name: site.name,
+  inLanguage: 'ro-RO',
+  publisher: { '@id': `${site.url}/#band` },
+};
+
+const graph = [
+  bandSchema,
+  websiteSchema,
+  ...(schema ? (Array.isArray(schema) ? schema : [schema]) : []),
+];
+
+const jsonLd = { '@context': 'https://schema.org', '@graph': graph };
+---
+
+<!doctype html>
+<html lang="ro" class="grain">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {!noindex && <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />}
+
+    <!-- Fonturile sunt self-hosted; le preincarcam pe cele din primul ecran
+         ca sa nu tremure textul (evita CLS din swap tardiv). -->
+    <link
+      rel="preload"
+      href="/fonts/v24-48e1b4bf.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <!-- latin-ext: fara el, ă/ș/ț din titluri s-ar reasza dupa incarcare. -->
+    <link
+      rel="preload"
+      href="/fonts/v24-75ea2b55.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/v22-a57c9413.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#07080a" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content="ro_RO" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${site.name} — ${site.tagline}`} />
+
+    <!-- X / Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <meta name="author" content={site.name} />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Spotify e singurul tert; deschidem conexiunea din timp. -->
+    <link rel="preconnect" href="https://open.spotify.com" />
+    <link rel="dns-prefetch" href="https://open.spotify.com" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+
+    <!-- Marcheaza ca JS-ul e activ inainte de primul paint, ca sa nu
+         apara continutul si abia apoi sa dispara pentru animatie. -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+  </head>
+
+  <body>
+    <a
+      href="#continut"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-slime focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:uppercase focus:text-void"
+    >
+      Sari la conținut
+    </a>
+
+    <slot />
+
+    <script>
+      // Reveal la scroll — un singur observer, deconectat dupa ce si-a facut treaba.
+      const items = document.querySelectorAll('.reveal');
+      if (items.length && 'IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('is-in');
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -12% 0px', threshold: 0.08 },
+        );
+        items.forEach((el) => io.observe(el));
+      } else {
+        items.forEach((el) => el.classList.add('is-in'));
+      }
+    </script>
+  </body>
+</html>

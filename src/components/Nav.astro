@@ -1,0 +1,176 @@
+---
+import { site } from '../data/site';
+
+const nav = [
+  { href: '/#muzica', label: 'Muzică' },
+  { href: '/#galerie', label: 'Galerie' },
+  { href: '/#concerte', label: 'Concerte' },
+  { href: '/#merch', label: 'Merch' },
+  { href: '/joc', label: 'Joc' },
+  { href: '/#contact', label: 'Contact' },
+];
+---
+
+<header
+  id="nav"
+  class="fixed inset-x-0 top-0 z-50 border-b border-transparent transition-[background-color,border-color,backdrop-filter] duration-500"
+  data-nav
+>
+  <nav
+    class="mx-auto flex max-w-[100rem] items-center justify-between px-5 py-3 md:px-8"
+    aria-label="Navigare principală"
+  >
+    <a
+      href="/"
+      class="group flex items-center gap-3"
+      aria-label={`${site.name} — pagina principală`}
+    >
+      <span class="text-bone transition-colors duration-300 group-hover:text-slime">
+        <!-- Craniul: acelasi SVG ca favicon-ul, mostenind culoarea -->
+        <svg
+          viewBox="0 0 16 16"
+          width="28"
+          height="28"
+          shape-rendering="crispEdges"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <rect x="4" y="1" width="8" height="1"></rect>
+          <rect x="2" y="2" width="12" height="1"></rect>
+          <rect x="1" y="3" width="14" height="1"></rect>
+          <rect x="0" y="4" width="16" height="1"></rect>
+          <rect x="0" y="5" width="16" height="1"></rect>
+          <rect x="0" y="6" width="2" height="1"></rect>
+          <rect x="6" y="6" width="4" height="1"></rect>
+          <rect x="14" y="6" width="2" height="1"></rect>
+          <rect x="0" y="7" width="2" height="1"></rect>
+          <rect x="6" y="7" width="4" height="1"></rect>
+          <rect x="14" y="7" width="2" height="1"></rect>
+          <rect x="0" y="8" width="3" height="1"></rect>
+          <rect x="6" y="8" width="4" height="1"></rect>
+          <rect x="13" y="8" width="3" height="1"></rect>
+          <rect x="0" y="9" width="4" height="1"></rect>
+          <rect x="6" y="9" width="4" height="1"></rect>
+          <rect x="12" y="9" width="4" height="1"></rect>
+          <rect x="0" y="10" width="7" height="1"></rect>
+          <rect x="9" y="10" width="7" height="1"></rect>
+          <rect x="0" y="11" width="6" height="1"></rect>
+          <rect x="10" y="11" width="6" height="1"></rect>
+          <rect x="0" y="12" width="16" height="1"></rect>
+          <rect x="1" y="13" width="14" height="1"></rect>
+          <rect x="2" y="14" width="12" height="1"></rect>
+          <rect x="2" y="15" width="1" height="1"></rect>
+          <rect x="4" y="15" width="2" height="1"></rect>
+          <rect x="7" y="15" width="2" height="1"></rect>
+          <rect x="10" y="15" width="2" height="1"></rect>
+          <rect x="13" y="15" width="1" height="1"></rect>
+        </svg>
+      </span>
+      <span
+        class="font-display text-2xl font-black uppercase leading-none tracking-tight text-bone"
+      >
+        {site.name}
+      </span>
+    </a>
+
+    <!-- Desktop -->
+    <ul class="hidden items-center gap-7 md:flex">
+      {
+        nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="label relative py-2 text-bone/70 transition-colors duration-300 hover:text-slime after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-slime after:transition-transform after:duration-300 hover:after:scale-x-100"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <!-- Mobil -->
+    <button
+      type="button"
+      class="flex h-10 w-10 items-center justify-center md:hidden"
+      aria-label="Deschide meniul"
+      aria-expanded="false"
+      aria-controls="meniu-mobil"
+      data-menu-toggle
+    >
+      <span class="relative block h-3 w-6">
+        <span
+          class="absolute inset-x-0 top-0 h-0.5 bg-bone transition-transform duration-300"
+          data-bar-top
+        ></span>
+        <span
+          class="absolute inset-x-0 bottom-0 h-0.5 bg-bone transition-transform duration-300"
+          data-bar-bottom
+        ></span>
+      </span>
+    </button>
+  </nav>
+
+  <div
+    id="meniu-mobil"
+    class="grid grid-rows-[0fr] overflow-hidden border-t border-moss/30 bg-void/95 backdrop-blur-lg transition-[grid-template-rows] duration-500 md:hidden"
+    data-menu
+  >
+    <ul class="min-h-0">
+      {
+        nav.map((item) => (
+          <li class="border-b border-moss/20 last:border-0">
+            <a
+              href={item.href}
+              class="font-display block px-6 py-4 text-3xl font-bold uppercase text-bone transition-colors hover:text-slime"
+              data-menu-link
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-nav]');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+  const barTop = document.querySelector<HTMLElement>('[data-bar-top]');
+  const barBottom = document.querySelector<HTMLElement>('[data-bar-bottom]');
+
+  // Fundalul barei apare abia dupa ce s-a plecat din hero.
+  if (header) {
+    const onScroll = () => {
+      const past = window.scrollY > 40;
+      header.classList.toggle('bg-void/85', past);
+      header.classList.toggle('backdrop-blur-lg', past);
+      header.classList.toggle('border-moss/30', past);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  const setMenu = (open: boolean) => {
+    if (!menu || !toggle) return;
+    menu.style.gridTemplateRows = open ? '1fr' : '0fr';
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Închide meniul' : 'Deschide meniul');
+    if (barTop) barTop.style.transform = open ? 'translateY(5px) rotate(45deg)' : '';
+    if (barBottom) barBottom.style.transform = open ? 'translateY(-5px) rotate(-45deg)' : '';
+  };
+
+  toggle?.addEventListener('click', () => {
+    setMenu(toggle.getAttribute('aria-expanded') !== 'true');
+  });
+
+  document.querySelectorAll('[data-menu-link]').forEach((a) => {
+    a.addEventListener('click', () => setMenu(false));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setMenu(false);
+  });
+</script>
