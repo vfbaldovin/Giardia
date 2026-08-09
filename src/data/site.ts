@@ -15,8 +15,8 @@ export const site = {
   genres: ['Groove Metal', 'Thrash Metal', 'Heavy Metal'],
   // TODO trupa: completati orasul si anul infiintarii.
   origin: { city: 'România', country: 'RO', founded: '' },
-  email: 'contact@giardia.ro', // TODO: confirmati adresa
-  booking: 'booking@giardia.ro', // TODO: confirmati adresa
+  email: 'virgilbaldovin6@gmail.com',
+  booking: 'virgilbaldovin6@gmail.com', // aceeasi adresa pana cand trupa are mail pe domeniu
 } as const;
 
 export const links = {
@@ -32,6 +32,17 @@ export const links = {
 /** ID-uri Spotify pentru embed-uri. */
 export const spotify = {
   artistId: '4GNricNFbsp71cGCIElwkp',
+} as const;
+
+/**
+ * Muzica din joc. Fisierul trebuie sa fie masterul propriu al trupei, pus in
+ * public/audio/ — nu se poate lua din Spotify (fluxul e criptat).
+ * Daca fisierul lipseste, jocul detecteaza eroarea si ruleaza in tacere.
+ * Pune sirul gol ca sa dezactivezi muzica de tot.
+ */
+export const gameMusic = {
+  src: '/audio/sunt-ca-o-pasare.mp3',
+  title: 'Sunt ca o pasăre',
 } as const;
 
 export type Release = {

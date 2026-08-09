@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import Nav from '../Nav.astro';
 import Footer from '../Footer.astro';
-import { site } from '../../data/site';
+import { site, gameMusic } from '../../data/site';
 import { useTranslations, routes, languages, type Lang } from '../../i18n/ui';
 
 interface Props {
@@ -53,6 +53,7 @@ const engine = {
   scorePrefix: lang === 'ro' ? 'Scor' : 'Score',
   soundOn: t.game.soundOn,
   soundOff: t.game.soundOff,
+  musicUrl: gameMusic.src,
 };
 ---
 
@@ -176,7 +177,10 @@ const engine = {
   const raw = document.getElementById('game-strings')?.textContent;
 
   if (canvas && raw) {
-    const s = JSON.parse(raw) as Omit<GameStrings, 'scoreIs'> & { scorePrefix: string };
+    const s = JSON.parse(raw) as Omit<GameStrings, 'scoreIs'> & {
+      scorePrefix: string;
+      musicUrl: string;
+    };
     startGiardia(
       canvas,
       {
@@ -189,6 +193,7 @@ const engine = {
         muteBtn: document.getElementById('mute') as HTMLButtonElement,
       },
       { ...s, scoreIs: (n: number) => `${s.scorePrefix}: ${n}.` },
+      { musicUrl: s.musicUrl },
     );
   }
 </script>

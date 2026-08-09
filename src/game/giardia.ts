@@ -90,6 +90,76 @@ class Blips {
   turn() { this.play(300, 0.02, 'square', 0.015); }
 }
 
+/* ------------------------------------------------------------------ *
+ * Muzica de fundal. Un singur <audio> in bucla, pornit doar la gestul
+ * utilizatorului (Start) — asa nu ne blocheaza politica de autoplay.
+ * Daca fisierul lipseste sau nu se poate decoda, obiectul se dezactiveaza
+ * singur si jocul merge mai departe in tacere.
+ * ------------------------------------------------------------------ */
+class Music {
+  private el: HTMLAudioElement | null = null;
+  private fadeTimer: number | null = null;
+  private target = 0.32;
+  muted = false;
+
+  constructor(src?: string) {
+    if (!src || typeof Audio === 'undefined') return;
+    const a = new Audio(src);
+    a.loop = true;
+    a.preload = 'auto';
+    a.volume = 0;
+    // Fisier lipsa / format nesuportat => renuntam, fara sa aruncam.
+    a.addEventListener('error', () => {
+      this.el = null;
+    });
+    this.el = a;
+  }
+
+  /** Rampa lina de volum; fara ea, intrarea muzicii taie brusc. */
+  private fadeTo(v: number, ms: number, thenPause = false) {
+    const el = this.el;
+    if (!el) return;
+    if (this.fadeTimer !== null) clearInterval(this.fadeTimer);
+    const from = el.volume;
+    const steps = Math.max(Math.round(ms / 40), 1);
+    let i = 0;
+    this.fadeTimer = window.setInterval(() => {
+      i++;
+      el.volume = Math.min(Math.max(from + (v - from) * (i / steps), 0), 1);
+      if (i >= steps) {
+        if (this.fadeTimer !== null) clearInterval(this.fadeTimer);
+        this.fadeTimer = null;
+        if (thenPause) el.pause();
+      }
+    }, 40);
+  }
+
+  play() {
+    const el = this.el;
+    if (!el || this.muted) return;
+    // play() returneaza o promisiune care poate fi respinsa (autoplay).
+    void el.play().catch(() => {});
+    this.fadeTo(this.target, 700);
+  }
+
+  pause() {
+    if (!this.el) return;
+    this.fadeTo(0, 250, true);
+  }
+
+  /** La moarte: coboara volumul, dar lasa piesa unde e pentru restart. */
+  duck() {
+    if (!this.el) return;
+    this.fadeTo(0, 600, true);
+  }
+
+  setMuted(m: boolean) {
+    this.muted = m;
+    if (!this.el) return;
+    if (m) this.fadeTo(0, 200, true);
+  }
+}
+
 type Particle = {
   x: number; y: number; vx: number; vy: number;
   life: number; max: number; color: string; size: number;
@@ -126,9 +196,11 @@ export function startGiardia(
     muteBtn: HTMLButtonElement;
   },
   txt: GameStrings,
+  opts: { musicUrl?: string } = {},
 ): GameHandle {
   const ctx = canvas.getContext('2d', { alpha: false })!;
   const sfx = new Blips();
+  const music = new Music(opts.musicUrl);
 
   /* ---------------- stare ---------------- */
   let phase: Phase = 'idle';
@@ -324,6 +396,7 @@ export function startGiardia(
 
   function die(reason: string) {
     phase = 'dead';
+    music.duck();
     sfx.die();
     shake = 22;
     const h = snake[0];
@@ -610,10 +683,12 @@ export function startGiardia(
     phase = 'playing';
     lastFrame = performance.now();
     hideOverlay();
+    music.play();
   }
 
   function pause() {
     phase = 'paused';
+    music.pause();
     setOverlay(txt.paused, txt.pausedBody, txt.resume);
   }
 
@@ -622,6 +697,7 @@ export function startGiardia(
     lastFrame = performance.now();
     tickAcc = 0;
     hideOverlay();
+    music.play();
   }
 
   ui.overlayBtn.addEventListener('click', () => {
@@ -629,10 +705,15 @@ export function startGiardia(
     else start();
   });
 
+  // Un singur comutator pentru efecte + muzica: doua butoane ar fi fost
+  // doua lucruri de nimerit pe telefon, in timpul jocului.
   ui.muteBtn.addEventListener('click', () => {
-    sfx.muted = !sfx.muted;
-    ui.muteBtn.setAttribute('aria-pressed', String(sfx.muted));
-    ui.muteBtn.textContent = sfx.muted ? txt.soundOff : txt.soundOn;
+    const muted = !sfx.muted;
+    sfx.muted = muted;
+    music.setMuted(muted);
+    if (!muted && phase === 'playing') music.play();
+    ui.muteBtn.setAttribute('aria-pressed', String(muted));
+    ui.muteBtn.textContent = muted ? txt.soundOff : txt.soundOn;
   });
 
   // Pauza automata cand pleci din tab — altfel te intorci la un cadavru.
@@ -651,6 +732,7 @@ export function startGiardia(
 
   return {
     destroy() {
+      music.setMuted(true);
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener('keydown', onKey);
