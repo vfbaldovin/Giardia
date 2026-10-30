@@ -36,13 +36,37 @@ node tools/test-game.mjs   # testează logica jocului, fără browser
 Logo-ul e pixel-art definit ca grilă în `tools/make-logo.mjs`. Grila e sursa de
 adevăr: modifici acolo, rulezi scriptul, se regenerează tot setul de iconițe.
 
+## Acces la server
+
+Conectarea se face **cu cheie SSH**, prin aliasul din `~/.ssh/config`:
+
+```bash
+ssh giardia          # root@213.136.71.183 (vmi1781762.contaboserver.net)
+```
+
+Cheia folosita e `~/.ssh/id_ed25519` — aceeasi ca pentru GitHub, protejata cu
+passphrase si tinuta in keychain-ul macOS, deci se conecteaza fara sa ceara
+nimic. Nu exista nicio parola in acest repo.
+
+Daca `ssh giardia` nu merge de pe o masina noua, instaleaza cheia acolo:
+
+```bash
+ssh-copy-id -i ~/.ssh/id_ed25519.pub root@213.136.71.183
+```
+
+> **Atentie la ordinea din `~/.ssh/config`:** blocul `Host giardia` trebuie sa
+> stea **inaintea** lui `Host *`. In ssh_config castiga prima valoare gasita
+> pentru fiecare optiune, deci un bloc pus dupa wildcard si-ar vedea
+> `IdentityFile` ignorat in tacere.
+
 ## Deploy
 
 ```bash
-export GIARDIA_SSH_PASS='...'      # sau folosește o cheie SSH autorizată
 ./deploy/deploy.sh                 # build + rsync
-./deploy/deploy.sh --nginx         # și reinstalează vhost-ul
+./deploy/deploy.sh --nginx         # și reinstalează vhost-ul + anteturile + hook-ul certbot
 ```
+
+Nu cere nimic: autentificarea e pe cheie (vezi *Acces la server* mai sus).
 
 Configurația nginx trăiește în `deploy/`. Detalii care contează:
 
